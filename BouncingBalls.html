@@ -1,0 +1,172 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Balls</title>
+    
+</head>
+<body>
+    <style>
+        
+        html, body {
+            margin: 0;
+        }
+
+        html {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+            height: inherit;
+        }
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: -1px;
+            position: absolute;
+            margin: 0;
+
+            color: transparent;
+            text-shadow: 0 0 3px white;
+        }
+
+
+    </style>
+
+    <h1>bouncing balls</h1>
+    <canvas></canvas>
+
+    <script>
+        const canvas = document.querySelector('canvas');
+        const ctx = canvas.getContext('2d'); //realizza il contesto in cui disegnare
+
+        const width = (canvas.width = window.innerWidth);
+        const height = (canvas.height = window.innerHeight);
+        const title = document.querySelector('h1');
+
+
+        const random = (min,max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        function randomRGB(){
+            return `rgb(${random(0,255)},${random(0,255)},${random(0,255)})`;
+        }
+
+        class Ball{
+
+            constructor(x,y, velX, velY, color, size){
+                this.x = x;
+                this.y = y;
+                this.velX = velX;
+                this.velY = velY;
+                this.color = color;
+                this.size = size;
+            }
+
+            draw(){ // disegna cerchio
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x,this.y, this.size, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            animate(){ // cambia direzione quando tocca limite canvas
+                if((this.x + this.size) >= width || (this.x - this.size) <= 0){
+                    this.velX = -(this.velX);
+                }
+
+                if((this.y + this.size) >= height || (this.y - this.size) <= 0){
+                    this.velY = -(this.velY);
+                }
+
+                // muove sfere aggiornando velocità
+                this.x += this.velX;
+                this.y += this.velY;
+            }
+
+            collisionDetect(){
+                for(const ball of balls){ // si usa un loop per identificare tutte le palle con cui si può scontrarsi
+                    if(this !== ball){ // serve a differenziare la palla corrente dalla palla del loop 
+                        // di seguito algoritmo usato per controllare impatto fra due cerchi
+                        const dx = this.x - ball.x;
+                        const dy = this.y - ball.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if(distance <= this.size + ball.size){
+                            ball.color = (this.color = randomRGB()); // se c'è collisione, si cambia semplicemente colore
+                        }
+                    }
+                }
+            } 
+        }
+
+        
+        const balls = [];
+
+        while(balls.length < 70){
+            const size = random(10,20);
+            const ball = new Ball(
+                random(0 + size, width - size), // x, "una palla" lontano da bordo asse x
+                random(0 + size, height - size), // y, "una palla" lontano da bordo asse y
+                random(-7, 7), // velocità x
+                random(-7, 7), // velocità y
+                randomRGB(), // colore random
+                size
+            );
+
+            balls.push(ball); // aggiungi palla in coda all'array
+        }
+
+        function loop(){
+            ctx.fillStyle = "rgba(0, 0, 0, .25)"
+            ctx.fillRect(0, 0, width, height);
+            
+            for (const ball of balls){
+                ball.draw();
+                ball.animate();
+                ball.collisionDetect();
+            }
+
+            requestAnimationFrame(loop); //richiesta browser per reiterare un'animazione frame per frame
+        }
+
+        loop();
+
+
+        //animare il titoletto allo stesso modo delle sfere
+
+        let xPosition = 40;
+        let yPosition= 50;
+        let xSpeed = 4;
+        let ySpeed = 4;
+        const titleHeight = title.clientHeight; 
+        const titleWidth = title.clientWidth;
+
+        function animateTitle(){
+          
+            if((xPosition + titleWidth) >= width || xPosition <= 0){
+                    xSpeed = -(xSpeed);
+                }
+
+            if((yPosition + titleHeight) >= height || yPosition <= 0){
+                    ySpeed = -(ySpeed);
+                }
+
+            xPosition += xSpeed;
+            yPosition += ySpeed;
+
+            title.style.left = xPosition + "px";
+            title.style.top = yPosition + "px";
+
+            requestAnimationFrame(animateTitle);
+
+            }
+          
+
+        animateTitle();
+
+    </script>
+    
+</body>
+</html>
